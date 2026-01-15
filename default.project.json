@@ -1,0 +1,30 @@
+{
+    "name": "roblox_fishermans_restaurant",
+    "tree": {
+        "$className": "DataModel",
+        "ReplicatedStorage": {
+            "Shared": {
+                "$path": "src/Shared"
+            }
+        },
+        "ServerScriptService": {
+            "$path": "src/Server"
+        },
+        "StarterPack": {
+            "FishingRod": {
+                "$className": "Tool",
+                "RodScript": {
+                    "$path": "src/Client/RodScript.client.luau"
+                }
+            }
+        },
+        "StarterGui": {
+            "FishingUIHandler": {
+                "$path": "src/Client/FishingUIHandler.client.luau"
+            }
+        },
+        "StarterPlayer": {
+            "StarterPlayerScripts": {}
+        }
+    }
+}
