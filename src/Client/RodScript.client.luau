@@ -6,9 +6,11 @@ local character = player.Character or player.CharacterAdded:Wait()
 local rootPart = character:WaitForChild("HumanoidRootPart")
 local mouse = player:GetMouse()
 local isFishing = false
+local isBiting = false -- ★NEW：魚が食いついている最中かどうかのフラグ
 
 -- リソースの取得
-local remote = game.ReplicatedStorage:WaitForChild("FishingEvent")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local remote = ReplicatedStorage:WaitForChild("FishingEvent")
 local throwSound = game:GetService("SoundService"):WaitForChild("ThrowSound")
 
 -- パーツ類
@@ -51,7 +53,9 @@ tool.Activated:Connect(function()
 	if isFishing then return end
 
 	local target = mouse.Target
-	if target and target.Name == "FishingSpot" then
+	
+	-- ★プロの魔法：素材が「水（Water）」、または名前が「FishingSpot」なら釣りを許可！
+	if target and (target.Material == Enum.Material.Water or target.Name:find("FishingSpot") or target:IsA("Terrain")) then
 		isFishing = true
 
 		-- 1. 準備
@@ -66,22 +70,80 @@ tool.Activated:Connect(function()
 		task.wait(0.4) 
 		hookPos.WorldPosition = mouse.Hit.p
 		beam.Enabled = true
+		
+		-- ★NEW：水しぶきの音を鳴らす！
+		local splash = game:GetService("SoundService"):FindFirstChild("SplashSound")
+		if splash then splash:Play() end
 
-		print("キャスト完了：このまま3秒待ちます")
+		-- 4. 釣りの待機時間（魚が寄ってくるまで）
+		task.wait(2.2)
 
-		-- 4. 釣りの待機時間（投げた姿勢をキープ）
-		task.wait(2.6) 
+		-- ★ヒット状態！ここで止まってクリックを待つ
+		print("🎣 魚が食いついた！クリックして合わせろ！")
+		isBiting = true -- 「食いつき中」フラグをオンにする
+		remote:FireServer("HIT") -- 画面に「！」を出す
+		
+		-- プレイヤーがクリックするのを待つ（最大2.5秒）
+		local reactionTime = 2.5
+		local clicked = false
+		local startTime = tick()
+		
+		-- クリックされるか、時間が切れるまでループ
+		while tick() - startTime < reactionTime do
+			if not isBiting then -- tool.Activated で false にされたらクリック成功
+				clicked = true
+				break
+			end
+			task.wait(0.05)
+		end
+		
+		if clicked then
+			-- ★クリック成功！巻き上げ開始
+			print("🎯 タイミングバッチリ！巻き上げ開始！")
+			
+			-- 巻き上げ演出（ガクガク動かす！）
+			local splashEffect = ReplicatedStorage:FindFirstChild("SplashEffect")
+			local currentSplash = nil
+			if splashEffect then
+				currentSplash = splashEffect:Clone()
+				currentSplash.Parent = hookPos
+				currentSplash.Enabled = true
+			end
 
-		-- 5. サーバーへ結果を送信
-		remote:FireServer()
+			local reelStartTime = tick()
+			while tick() - reelStartTime < 1.0 do
+				-- 竿の角度をランダムに少し変えてガクガクさせる
+				local shake = CFrame.Angles(math.rad(60 + math.random(-5, 5)), math.rad(math.random(-5, 5)), 0)
+				tool.Grip = normalGrip * shake
+				task.wait(0.05)
+			end
 
-		-- 6. 【重要】後片付け（ここで元に戻る）
-		task.wait(0.5) -- 釣り上げた余韻
+			-- サーバーへ釣り上げ完了を報告
+			print("📡 サーバーへ釣り上げ完了を報告")
+			remote:FireServer()
+
+			if currentSplash then currentSplash:Destroy() end
+		else
+			-- ★失敗：魚に逃げられた！
+			print("🐟 ああー！魚に逃げられた...")
+		end
+
+		-- 6. 【重要】後片付け
+		isBiting = false
+		task.wait(0.5) -- 演出の余韻
 		beam.Enabled = false
 		rootPart.Anchored = false 
 		tool.Grip = normalGrip -- 竿を元の位置に戻す
 		isFishing = false
 
 		print("リセット完了：次のキャストが可能です")
+	end
+end)
+
+-- ★NEW：クリックされた時の処理（食いつき中なら巻き上げを許可する）
+tool.Activated:Connect(function()
+	if isBiting then
+		isBiting = false -- whileループを抜けさせる合図
+		print("🖱️ クリック検知：合わせに成功！")
 	end
 end)

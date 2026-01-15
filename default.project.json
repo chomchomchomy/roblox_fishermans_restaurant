@@ -5,6 +5,12 @@
         "ReplicatedStorage": {
             "Shared": {
                 "$path": "src/Shared"
+            },
+            "HitIndicator": {
+                "$className": "BillboardGui",
+                "ImageLabel": {
+                    "$className": "ImageLabel"
+                }
             }
         },
         "ServerScriptService": {
