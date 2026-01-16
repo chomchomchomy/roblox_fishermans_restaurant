@@ -146,7 +146,7 @@ local function showBagFullWarning()
 	warnLabel.Size = UDim2.new(1, 0, 1, 0)
 	warnLabel.BackgroundTransparency = 1
 	warnLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
-	warnLabel.Text = "🚨 バッグがいっぱいです！屋台で売ってきましょう！"
+	warnLabel.Text = "🚨 バッグがいっぱいです！シェフに売りに行こう！"
 	warnLabel.TextScaled = true
 	warnLabel.Font = Enum.Font.GothamBlack
 	warnLabel.Parent = container
