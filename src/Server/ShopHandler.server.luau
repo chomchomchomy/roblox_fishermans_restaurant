@@ -1,47 +1,24 @@
 -- ShopHandler.server.luau
--- 釣具屋でのアップグレード処理
+-- 釣具屋でのアップグレード処理 (進化対応版)
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local fishingEvent = ReplicatedStorage:WaitForChild("FishingEvent")
+local shopEvent = ReplicatedStorage:FindFirstChild("ShopEvent") or Instance.new("RemoteEvent", ReplicatedStorage)
+shopEvent.Name = "ShopEvent"
 
--- ★NEW：ショップイベントの作成
-local shopEvent = ReplicatedStorage:FindFirstChild("ShopEvent")
-if not shopEvent then
-    shopEvent = Instance.new("RemoteEvent")
-    shopEvent.Name = "ShopEvent"
-    shopEvent.Parent = ReplicatedStorage
-end
+local function setupShopLogic(counter)
+    if counter:FindFirstChild("ShopPrompt") then return end
 
--- ショップのカウンターを探す
-local function setupShopCounter()
-    local shop = workspace:WaitForChild("UpgradeShop", 10)
-    if not shop then 
-        warn("UpgradeShopが見つかりません。")
-        return 
-    end
-
-    local counter = shop:FindFirstChild("UpgradeCounter")
-    if not counter then
-        warn("UpgradeCounterが見つかりません。")
-        return
-    end
-
-    -- 近接プロンプトの設定
-    local prompt = Instance.new("ProximityPrompt")
+    local prompt = Instance.new("ProximityPrompt", counter)
+    prompt.Name = "ShopPrompt"
     prompt.ActionText = "アップグレード"
     prompt.ObjectText = "伝説の釣具屋"
     prompt.HoldDuration = 0.5
     prompt.KeyboardKeyCode = Enum.KeyCode.E
-    prompt.Parent = counter
 
-    -- プロンプト実行時
     prompt.Triggered:Connect(function(player)
-        print("🛒 [" .. player.Name .. "] がショップを開きました")
         shopEvent:FireClient(player, "OPEN")
     end)
 end
-
-local RodData = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("RodData"))
 
 -- 購入処理
 shopEvent.OnServerEvent:Connect(function(player, action, itemType)
@@ -52,54 +29,37 @@ shopEvent.OnServerEvent:Connect(function(player, action, itemType)
     if action == "BUY_UPGRADE" then
         if itemType == "FISHING_SPEED" then
             local currentLevel = player:GetAttribute("FishingSpeedLevel") or 1
-            local cost = currentLevel * 500
-            
+            local cost = currentLevel * 200
             if money.Value >= cost then
                 money.Value -= cost
                 player:SetAttribute("FishingSpeedLevel", currentLevel + 1)
-                
-                -- すでにある倍率にさらに0.9倍（10%速く）
-                local currentSpeed = player:GetAttribute("FishingSpeed") or 1.0
-                player:SetAttribute("FishingSpeed", currentSpeed * 0.9)
-                
-                print("💰 [" .. player.Name .. "] 修行により釣りの速度が向上！")
-                shopEvent:FireClient(player, "SUCCESS", "FISHING_SPEED")
+                local newSpeed = 1.0 - (currentLevel * 0.05)
+                if newSpeed < 0.3 then newSpeed = 0.3 end
+                player:SetAttribute("FishingSpeed", newSpeed)
+                shopEvent:FireClient(player, "SUCCESS")
             end
         elseif itemType == "BAG_SIZE" then
             local currentLevel = player:GetAttribute("BagLevel") or 1
-            local cost = currentLevel * 400
-            
+            local cost = currentLevel * 300
             if money.Value >= cost then
                 money.Value -= cost
                 player:SetAttribute("BagLevel", currentLevel + 1)
-                local newSize = 5 + (currentLevel * 5)
+                local newSize = 5 + (currentLevel * 3)
                 player:SetAttribute("MaxStorage", newSize)
-                
-                print("💰 [" .. player.Name .. "] バッグ拡張完了(容量: " .. newSize .. ")")
-                shopEvent:FireClient(player, "SUCCESS", "BAG_SIZE")
+                shopEvent:FireClient(player, "SUCCESS")
             end
-        end
-    elseif action == "BUY_ROD" then
-        local currentTier = player:GetAttribute("RodTier") or 1
-        local nextTier = currentTier + 1
-        local rodInfo = RodData[nextTier]
-
-        if rodInfo and money.Value >= rodInfo.price then
-            money.Value -= rodInfo.price
-            player:SetAttribute("RodTier", nextTier)
-            player:SetAttribute("FishingSpeed", rodInfo.speed)
-            player:SetAttribute("RarityBoost", rodInfo.rarityBoost)
-            
-            -- 竿の見た目を変えるために属性セット
-            player:SetAttribute("RodColor", rodInfo.color)
-            
-            print("💰 [" .. player.Name .. "] が " .. rodInfo.name .. " を購入しました！")
-            shopEvent:FireClient(player, "SUCCESS", "ROD", nextTier)
         end
     end
 end)
 
+-- 監視ループ
 task.spawn(function()
-    task.wait(1)
-    setupShopCounter()
+    while true do
+        local shop = workspace:FindFirstChild("UpgradeShop")
+        local counter = shop and shop:FindFirstChild("UpgradeCounter")
+        if counter then
+            setupShopLogic(counter)
+        end
+        task.wait(2)
+    end
 end)

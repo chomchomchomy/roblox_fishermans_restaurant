@@ -25,12 +25,14 @@ local function setupPlayer(player)
 		money.Value = data.Money or 0
 		player:SetAttribute("MaxStorage", data.MaxStorage or 5)
 		player:SetAttribute("FishingSpeed", data.FishingSpeed or 1)
+		player:SetAttribute("StoreStage", data.StoreStage or 0)
 		print("💾 [" .. player.Name .. "] のデータを復元しました")
 	else
 		-- 初めてのプレイ、またはエラー時は初期値
 		money.Value = 0
 		player:SetAttribute("MaxStorage", 5)
 		player:SetAttribute("FishingSpeed", 1)
+		player:SetAttribute("StoreStage", 0)
 		print("🆕 [" .. player.Name .. "] の新規データを作成しました")
 	end
 	
@@ -45,11 +47,13 @@ local function savePlayer(player)
 	local money = player.leaderstats.Money.Value
 	local maxStorage = player:GetAttribute("MaxStorage")
 	local fishingSpeed = player:GetAttribute("FishingSpeed")
+	local storeStage = player:GetAttribute("StoreStage")
 
 	local data = {
 		Money = money,
 		MaxStorage = maxStorage,
-		FishingSpeed = fishingSpeed
+		FishingSpeed = fishingSpeed,
+		StoreStage = storeStage
 	}
 
 	local success, err = pcall(function()
