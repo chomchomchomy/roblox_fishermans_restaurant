@@ -72,20 +72,24 @@ remote.OnServerEvent:Connect(function(player, action)
 	if foundFish then
 		print("⚖️ 抽選結果: " .. foundFish.name .. " (確率: " .. foundFish.chance .. "%)")
 		
-		-- ★NEW：お魚を「ツール」としてバッグ（Backpack）に入れる
-		-- これにより、標準のホットバーにスロットとして並びます！
+		-- ★重さのランダム計算
+		local minW = foundFish.minWeight or 0.1
+		local maxW = foundFish.maxWeight or 1.0
+		local weight = minW + (math.random() * (maxW - minW))
+		local weightStr = string.format("%.2f", weight) .. "kg"
+
+		-- ★お魚ツールの生成
 		local fishTool = Instance.new("Tool")
-		fishTool.Name = foundFish.name
-		fishTool.RequiresHandle = false -- 持ち手なし
+		fishTool.Name = foundFish.name .. " (" .. weightStr .. ")"
+		fishTool.TextureId = foundFish.imageId -- これでスロットに画像が出る！
+		fishTool.RequiresHandle = false
 		fishTool:SetAttribute("Value", foundFish.price)
-		fishTool.ToolTip = "売値: " .. foundFish.price .. "円"
+		fishTool:SetAttribute("Weight", weight)
+		fishTool.ToolTip = "売値: " .. foundFish.price .. "円 | 重さ: " .. weightStr
 		
-		-- ホットバーに表示されるアイコン（絵文字をアイコンにするのは少し工夫が必要ですが、
-		-- まずは名前がスロットに出るようになります）
-		
-		-- プレイヤーの持ち物（Backpack）に入れる
 		fishTool.Parent = player:WaitForChild("Backpack")
 
-		remote:FireClient(player, foundFish.name, foundFish.price, foundFish.emoji)
+		-- クライアントへ通知（画像IDを渡す）
+		remote:FireClient(player, foundFish.name, foundFish.price, foundFish.imageId, weightStr)
 	end
 end)

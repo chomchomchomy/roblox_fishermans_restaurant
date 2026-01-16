@@ -8,56 +8,64 @@ local playerGui = player:WaitForChild("PlayerGui")
 
 -- メッセージを表示する関数
 -- メッセージを表示する関数
-local function showCatchMessage(itemName, price, emoji)
-	print("🎞️ 釣り上げ演出開始: " .. itemName)
+local function showCatchMessage(itemName, price, imageId, weightStr)
+	print("🎞️ 演出スタート！ 魚: " .. itemName .. " (" .. weightStr .. ")")
 	
 	local screenGui = playerGui:FindFirstChild("CatchGui") or Instance.new("ScreenGui")
 	screenGui.Name = "CatchGui"
 	screenGui.ResetOnSpawn = false
 	screenGui.Parent = playerGui
 
-	-- ★最終兵器：送られてきた絵文字をそのまま使う！
-	local fishLabel = Instance.new("TextLabel")
-	fishLabel.Name = "FishEmoji"
-	fishLabel.AnchorPoint = Vector2.new(0.5, 0.5)
-	fishLabel.Size = UDim2.new(0, 0, 0, 0)
-	fishLabel.Position = UDim2.new(0.5, 0, 0.4, 0)
-	fishLabel.BackgroundTransparency = 1
-	fishLabel.Text = emoji or "🐟"
-	fishLabel.TextScaled = true
-	fishLabel.ZIndex = 12
-	fishLabel.Parent = screenGui
+	-- メインコンテナ
+	local container = Instance.new("Frame")
+	container.Size = UDim2.new(0, 400, 0, 400)
+	container.Position = UDim2.new(0.5, -200, 0.4, 0)
+	container.AnchorPoint = Vector2.new(0.5, 0.5)
+	container.BackgroundTransparency = 1
+	container.Parent = screenGui
+
+	-- お魚の画像
+	local fishImage = Instance.new("ImageLabel")
+	fishImage.Size = UDim2.new(0, 250, 0, 250)
+	fishImage.Position = UDim2.new(0.5, -125, 0, 0)
+	fishImage.Image = imageId or "rbxassetid://16024926500"
+	fishImage.BackgroundTransparency = 1
+	fishImage.ZIndex = 12
+	fishImage.Parent = container
+
+	-- 名前パネル
+	local nameLabel = Instance.new("TextLabel")
+	nameLabel.Size = UDim2.new(1, 0, 0, 50)
+	nameLabel.Position = UDim2.new(0, 0, 0, 260)
+	nameLabel.BackgroundTransparency = 0.5
+	nameLabel.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+	nameLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+	nameLabel.Text = itemName
+	nameLabel.TextScaled = true
+	nameLabel.Font = Enum.Font.LuckiestGuy
+	nameLabel.ZIndex = 15
+	nameLabel.Parent = container
 	
-	-- 演出：ドカンと大きく弾む！
-	fishLabel:TweenSize(UDim2.new(0, 300, 0, 300), "Out", "Back", 0.5)
-	
-	print("✅ 演出スタート！ 絵文字: " .. tostring(emoji))
+	Instance.new("UICorner", nameLabel).CornerRadius = UDim.new(0, 10)
 
-	-- メッセージラベル（名前と値段）
-	local label = Instance.new("TextLabel")
-	label.AnchorPoint = Vector2.new(0.5, 0.5)
-	label.Size = UDim2.new(0.6, 0, 0.1, 0)
-	label.Position = UDim2.new(0.5, 0, 0.75, 0)
-	label.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
-	label.BackgroundTransparency = 0.5
-	label.TextColor3 = Color3.fromRGB(255, 255, 255)
-	label.TextScaled = true
-	label.Font = Enum.Font.GothamBold
-	label.ZIndex = 15
-	label.Parent = screenGui
+	-- 重さラベル
+	local weightLabel = Instance.new("TextLabel")
+	weightLabel.Size = UDim2.new(1, 0, 0, 30)
+	weightLabel.Position = UDim2.new(0, 0, 0, 320)
+	weightLabel.BackgroundTransparency = 1
+	weightLabel.TextColor3 = Color3.fromRGB(150, 255, 150)
+	weightLabel.Text = weightStr or "0.0kg"
+	weightLabel.TextSize = 24
+	weightLabel.Font = Enum.Font.GothamBold
+	weightLabel.ZIndex = 15
+	weightLabel.Parent = container
 
-	if price > 0 then
-		label.Text = "✨ " .. itemName .. " をゲット！ (バッグへ追加) ✨"
-		label.TextColor3 = Color3.fromRGB(255, 255, 0)
-	else
-		label.Text = "👟 " .. itemName .. " だけどキープした (0円)"
-		label.TextColor3 = Color3.fromRGB(200, 200, 200)
-	end
+	-- アニメーション：ドカンと大きく弾む！
+	fishImage.Size = UDim2.new(0, 0, 0, 0)
+	fishImage:TweenSize(UDim2.new(0, 250, 0, 250), "Out", "Back", 0.5)
 
-	-- 3秒後に消える
 	task.wait(3)
-	fishLabel:Destroy()
-	label:Destroy()
+	container:Destroy()
 	print("🧹 演出終了：画面をお掃除しました")
 end
 
@@ -159,14 +167,14 @@ localNotice.Event:Connect(function(msg)
 end)
 
 -- サーバーからの通知を受け取る
-fishingEvent.OnClientEvent:Connect(function(itemName, price, emoji)
+fishingEvent.OnClientEvent:Connect(function(itemName, price, imageId, weightStr)
 	if itemName == "HIT" then
 		showHitEffect()
 	elseif itemName == "BAG_FULL" then
 		showBagFullWarning()
 	elseif itemName == "SELL_RESULTS" then
 		local totalMoney = price -- 第2引数をpriceとして受け取っている
-		local count = emoji -- 第3引数をemoji(count)として受け取っている
+		local count = imageId -- 第3引数をimageId(count)として受け取っている
 		
 		print("💰 売却完了: " .. totalMoney .. "円")
 		
@@ -196,6 +204,6 @@ fishingEvent.OnClientEvent:Connect(function(itemName, price, emoji)
 		end)
 	else
 		print("クライアント受信: " .. itemName .. " を釣りました！")
-		showCatchMessage(itemName, price, emoji)
+		showCatchMessage(itemName, price, imageId, weightStr)
 	end
 end)
