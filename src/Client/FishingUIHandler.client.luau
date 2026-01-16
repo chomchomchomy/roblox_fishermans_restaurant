@@ -47,10 +47,10 @@ local function showCatchMessage(itemName, price, emoji)
 	label.Parent = screenGui
 
 	if price > 0 then
-		label.Text = "✨ " .. itemName .. " をゲット！ (" .. price .. "円) ✨"
+		label.Text = "✨ " .. itemName .. " をゲット！ (バッグへ追加) ✨"
 		label.TextColor3 = Color3.fromRGB(255, 255, 0)
 	else
-		label.Text = "👟 " .. itemName .. " が釣れた... (0円)"
+		label.Text = "👟 " .. itemName .. " だけどキープした (0円)"
 		label.TextColor3 = Color3.fromRGB(200, 200, 200)
 	end
 
@@ -108,10 +108,92 @@ local function showHitEffect()
 	clickLabel:Destroy()
 end
 
+-- ローカル通知（他のクライアントスクリプトからの呼び出し）を受け取る
+local localNotice = ReplicatedStorage:FindFirstChild("LocalNotice")
+if not localNotice then
+	localNotice = Instance.new("BindableEvent")
+	localNotice.Name = "LocalNotice"
+	localNotice.Parent = ReplicatedStorage
+end
+
+local function showBagFullWarning()
+	print("バッグがいっぱいです！")
+	-- バッグ満杯時の警告表示（もっと目立つように！）
+	local screenGui = playerGui:FindFirstChild("CatchGui") or Instance.new("ScreenGui")
+	screenGui.Name = "CatchGui"
+	screenGui.Parent = playerGui
+
+	local container = Instance.new("Frame")
+	container.Size = UDim2.new(0, 400, 0, 80)
+	container.Position = UDim2.new(0.5, -200, 0.3, 0)
+	container.BackgroundColor3 = Color3.fromRGB(150, 0, 0)
+	container.BorderSizePixel = 0
+	container.Parent = screenGui
+
+	local uiCorner = Instance.new("UICorner")
+	uiCorner.CornerRadius = UDim.new(0, 12)
+	uiCorner.Parent = container
+
+	local warnLabel = Instance.new("TextLabel")
+	warnLabel.Size = UDim2.new(1, 0, 1, 0)
+	warnLabel.BackgroundTransparency = 1
+	warnLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+	warnLabel.Text = "🚨 バッグがいっぱいです！屋台で売ってきましょう！"
+	warnLabel.TextScaled = true
+	warnLabel.Font = Enum.Font.GothamBlack
+	warnLabel.Parent = container
+	
+	-- アニメーション：パルス（ドクンドクンと動く）
+	container:TweenSize(UDim2.new(0, 420, 0, 90), "Out", "Quad", 0.2, true, function()
+		container:TweenSize(UDim2.new(0, 400, 0, 80), "Out", "Quad", 0.2, true)
+	end)
+
+	task.wait(2.5)
+	container:Destroy()
+end
+
+localNotice.Event:Connect(function(msg)
+	if msg == "BAG_FULL" then
+		showBagFullWarning()
+	end
+end)
+
 -- サーバーからの通知を受け取る
 fishingEvent.OnClientEvent:Connect(function(itemName, price, emoji)
 	if itemName == "HIT" then
 		showHitEffect()
+	elseif itemName == "BAG_FULL" then
+		showBagFullWarning()
+	elseif itemName == "SELL_RESULTS" then
+		local totalMoney = price -- 第2引数をpriceとして受け取っている
+		local count = emoji -- 第3引数をemoji(count)として受け取っている
+		
+		print("💰 売却完了: " .. totalMoney .. "円")
+		
+		-- 売却成功のエフェクト表示
+		local screenGui = playerGui:FindFirstChild("CatchGui") or Instance.new("ScreenGui")
+		screenGui.Name = "CatchGui"
+		screenGui.Parent = playerGui
+
+		local sellLabel = Instance.new("TextLabel")
+		sellLabel.Size = UDim2.new(0, 400, 0, 50)
+		sellLabel.Position = UDim2.new(0.5, -200, 0.45, 0)
+		sellLabel.BackgroundTransparency = 1
+		sellLabel.TextColor3 = Color3.fromRGB(255, 215, 0) -- ゴールド色
+		sellLabel.Text = "💰 +" .. totalMoney .. " Gold! (" .. count .. "匹売却)"
+		sellLabel.TextScaled = true
+		sellLabel.Font = Enum.Font.LuckiestGuy
+		sellLabel.Parent = screenGui
+		
+		-- 上にふわっと消えていくアニメーション
+		sellLabel:TweenPosition(UDim2.new(0.5, -200, 0.35, 0), "Out", "Quart", 1.5)
+		task.spawn(function()
+			for i = 0, 1, 0.05 do
+				sellLabel.TextTransparency = i
+				task.wait(0.075)
+			end
+			sellLabel:Destroy()
+		end)
 	else
 		print("クライアント受信: " .. itemName .. " を釣りました！")
 		showCatchMessage(itemName, price, emoji)

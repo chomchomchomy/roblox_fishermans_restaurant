@@ -48,9 +48,39 @@ local function updateRodTip()
 	end
 end
 
+-- ローカル通知の取得
+local localNotice = ReplicatedStorage:FindFirstChild("LocalNotice")
+if not localNotice then
+	localNotice = Instance.new("BindableEvent")
+	localNotice.Name = "LocalNotice"
+	localNotice.Parent = ReplicatedStorage
+end
+
 -- クリックした時の処理
 tool.Activated:Connect(function()
 	if isFishing then return end
+
+	-- ★バッグがいっぱいかチェックする
+	local fishCount = 0
+	local backpack = player:WaitForChild("Backpack")
+	local char = player.Character or player.CharacterAdded:Wait()
+	
+	local allItems = {}
+	for _, item in pairs(backpack:GetChildren()) do table.insert(allItems, item) end
+	for _, item in pairs(char:GetChildren()) do table.insert(allItems, item) end
+
+	for _, item in pairs(allItems) do
+		if item:IsA("Tool") and item.Name ~= "FishingRod" then
+			fishCount = fishCount + 1
+		end
+	end
+
+	local max = player:GetAttribute("MaxStorage") or 5
+	if fishCount >= max then
+		warn("⚠️ バッグが満杯のため、釣りはできません。")
+		localNotice:Fire("BAG_FULL") -- 画面にメッセージを出す！
+		return
+	end
 
 	local target = mouse.Target
 	
@@ -75,10 +105,15 @@ tool.Activated:Connect(function()
 		local splash = game:GetService("SoundService"):FindFirstChild("SplashSound")
 		if splash then splash:Play() end
 
-		-- 4. 釣りの待機時間（魚が寄ってくるまで）
-		task.wait(2.2)
+		-- 4. 釣りの待機時間（プレイヤーの能力を反映！）
+		local baseSpeed = 2.2
+		local speedAttr = player:GetAttribute("FishingSpeed") or 1.0
+		local waitTime = baseSpeed * speedAttr
+		
+		print("⏳ 魚を待っています... (待機時間: " .. string.format("%.1f", waitTime) .. "秒)")
+		task.wait(waitTime)
 
-		-- ★ヒット状態！ここで止まってクリックを待つ
+		-- ★ヒット状態！
 		print("🎣 魚が食いついた！クリックして合わせろ！")
 		isBiting = true -- 「食いつき中」フラグをオンにする
 		remote:FireServer("HIT") -- 画面に「！」を出す

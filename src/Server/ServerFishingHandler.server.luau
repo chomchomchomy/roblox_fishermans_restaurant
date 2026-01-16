@@ -15,21 +15,52 @@ remote.OnServerEvent:Connect(function(player, action)
 
 	local leaderstats = player:FindFirstChild("leaderstats")
 	local money = leaderstats and leaderstats:FindFirstChild("Money")
+	local maxBagSize = player:GetAttribute("MaxStorage") or 5
 
-	-- ★プロの抽選マジック：帳簿の中から1つ選ぶよ
-	local totalChance = 0
-	for _, fish in pairs(FishData) do
-		totalChance = totalChance + fish.chance
+	-- ★バッグ（Backpack + 持っているモノ）の中のお魚を数える
+	local fishCount = 0
+	local allItems = {}
+	for _, item in pairs(player.Backpack:GetChildren()) do table.insert(allItems, item) end
+	for _, item in pairs(player.Character:GetChildren()) do table.insert(allItems, item) end
+
+	for _, item in pairs(allItems) do
+		if item:IsA("Tool") and item.Name ~= "FishingRod" then
+			fishCount = fishCount + 1
+		end
 	end
 
-	local randomNumber = math.random(1, totalChance)
+	if fishCount >= maxBagSize then
+		warn(player.Name .. "のバッグがいっぱいです！")
+		remote:FireClient(player, "BAG_FULL")
+		return
+	end
+
+	-- ★プロの抽選マジック（レア度補正あり！）
+	local rarityBoost = player:GetAttribute("RarityBoost") or 1.0
+	local totalChance = 0
+	local boostedFishes = {}
+
+	for _, fish in pairs(FishData) do
+		local chance = fish.chance
+		-- レア度が高いほどブーストの効果を大きくする
+		if fish.rarity == "Rare" then
+			chance = chance * rarityBoost
+		elseif fish.rarity == "Legendary" then
+			chance = chance * (rarityBoost * 1.5)
+		end
+		
+		totalChance = totalChance + chance
+		table.insert(boostedFishes, {fish = fish, boostedChance = chance})
+	end
+
+	local randomNumber = math.random() * totalChance
 	local foundFish = nil
 	local currentChance = 0
 
-	for _, fish in pairs(FishData) do
-		currentChance = currentChance + fish.chance
+	for _, item in pairs(boostedFishes) do
+		currentChance = currentChance + item.boostedChance
 		if randomNumber <= currentChance then
-			foundFish = fish
+			foundFish = item.fish
 			break
 		end
 	end
@@ -37,10 +68,24 @@ remote.OnServerEvent:Connect(function(player, action)
 	-- 音を鳴らす
 	catchSound:Play()
 
-	-- 結果を送信（大帳簿に書いてある情報をそのまま送る！）
+	-- 結果を送信
 	if foundFish then
 		print("⚖️ 抽選結果: " .. foundFish.name .. " (確率: " .. foundFish.chance .. "%)")
-		if money then money.Value = money.Value + foundFish.price end
+		
+		-- ★NEW：お魚を「ツール」としてバッグ（Backpack）に入れる
+		-- これにより、標準のホットバーにスロットとして並びます！
+		local fishTool = Instance.new("Tool")
+		fishTool.Name = foundFish.name
+		fishTool.RequiresHandle = false -- 持ち手なし
+		fishTool:SetAttribute("Value", foundFish.price)
+		fishTool.ToolTip = "売値: " .. foundFish.price .. "円"
+		
+		-- ホットバーに表示されるアイコン（絵文字をアイコンにするのは少し工夫が必要ですが、
+		-- まずは名前がスロットに出るようになります）
+		
+		-- プレイヤーの持ち物（Backpack）に入れる
+		fishTool.Parent = player:WaitForChild("Backpack")
+
 		remote:FireClient(player, foundFish.name, foundFish.price, foundFish.emoji)
 	end
 end)

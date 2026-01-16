@@ -53,6 +53,9 @@
                 "ImageLabel": {
                     "$className": "ImageLabel"
                 }
+            },
+            "LocalNotice": {
+                "$className": "BindableEvent"
             }
         },
         "ServerScriptService": {
@@ -69,6 +72,9 @@
         "StarterGui": {
             "FishingUIHandler": {
                 "$path": "src/Client/FishingUIHandler.client.luau"
+            },
+            "ShopUIHandler": {
+                "$path": "src/Client/ShopUIHandler.client.luau"
             }
         },
         "StarterPlayer": {
