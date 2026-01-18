@@ -1,151 +1,23 @@
--- FishData.luau
--- お魚のマスターデータ（完全復旧・検証済ID版）
+-- FishData.luau (Final Asset Sync 完了)
+-- 🎓 アセットマネージャーの解説：
+-- ついに市松模様のない、完璧な状態のレア魚たちが登録されました。
 
 local FishData = {
-	{
-		name = "アジ",
-		price = 15,
-		chance = 35,
-		rarity = "Common",
-		imageId = "rbxassetid://12618848829", -- 公開されている魚のアイコン
-		minWeight = 0.2,
-		maxWeight = 0.8
-	},
-	{
-		name = "アカゾナエ・キング（真鯛）",
-		price = 120,
-		chance = 20,
-		rarity = "Uncommon",
-		imageId = "rbxassetid://10688386456", -- ユーザー提供・確認済ID
-		minWeight = 1.0,
-		maxWeight = 6.0
-	},
-	{
-		name = "ブルーフィン・タイタン（藍翼の巨鮪）",
-		price = 1800,
-		chance = 5,
-		rarity = "Rare",
-		imageId = "rbxassetid://18526823378", -- 公開画像：Blue Tang
-		minWeight = 50.0,
-		maxWeight = 250.0
-	},
-	{
-		name = "プラチナ・シャドウ（銀影の流波）",
-		price = 950,
-		chance = 8,
-		rarity = "Rare",
-		imageId = "rbxassetid://8174284465", -- ユーザーのスタジオにいたリアル魚
-		minWeight = 5.0,
-		maxWeight = 20.0
-	},
-	{
-		name = "サンセット_バースト（黄金の太陽）",
-		price = 250,
-		chance = 12,
-		rarity = "Rare",
-		imageId = "rbxassetid://259914000", -- 検証済：金魚画像
-		minWeight = 2.0,
-		maxWeight = 5.0
-	},
-	{
-		name = "コバルト・ガイア（蒼海帝アンコウ）",
-		price = 3500,
-		chance = 2,
-		rarity = "Legendary",
-		imageId = "rbxassetid://5439350551", -- アンコウ画像
-		minWeight = 50.0,
-		maxWeight = 300.0
-	},
-	{
-		name = "ヴォルタニック・イール（迅雷の電気鰻）",
-		price = 850,
-		chance = 6,
-		rarity = "Rare",
-		imageId = "rbxassetid://1208433382", -- 電気鰻画像
-		minWeight = 3.0,
-		maxWeight = 15.0
-	},
-	{
-		name = "スチール・ファントム（鋼鉄の幻影）",
-		price = 2200,
-		chance = 2,
-		rarity = "Legendary",
-		imageId = "rbxassetid://8174284465",
-		minWeight = 100.0,
-		maxWeight = 600.0
-	},
-	{
-		name = "アビス・ナイトメア（深淵の暴食者：サメ）",
-		price = 5000,
-		chance = 1,
-		rarity = "Legendary",
-		imageId = "rbxassetid://8589597517", -- 検証済：サメ画像
-		minWeight = 400.0,
-		maxWeight = 1500.0
-	},
-	{
-		name = "クリムゾン・エンペラー（深紅の皇帝エイ）",
-		price = 4200,
-		chance = 2,
-		rarity = "Legendary",
-		imageId = "rbxassetid://9712173925", -- エイ画像
-		minWeight = 80.0,
-		maxWeight = 400.0
-	},
-	{
-		name = "フレイム・クラウン（橙煌の道化師）",
-		price = 180,
-		chance = 12,
-		rarity = "Uncommon",
-		imageId = "rbxassetid://1159999522", -- 検証済：クマノミ画像
-		minWeight = 0.1,
-		maxWeight = 0.3
-	},
-	{
-		name = "コバルト・ティアラ（紺碧の姫君）",
-		price = 220,
-		chance = 10,
-		rarity = "Uncommon",
-		imageId = "rbxassetid://14397671101", 
-		minWeight = 0.2,
-		maxWeight = 0.5
-	},
-	{
-		name = "バースト・パニッシュ（憤怒のハリセンボン）",
-		price = 600,
-		chance = 8,
-		rarity = "Uncommon",
-		imageId = "rbxassetid://47791562", 
-		minWeight = 0.5,
-		maxWeight = 3.0
-	},
-	{
-		name = "ルナ・メデューサ（夢幻の紫海月）",
-		price = 450,
-		chance = 9,
-		rarity = "Uncommon",
-		imageId = "rbxassetid://874987797", -- クラゲ画像
-		minWeight = 0.1,
-		maxWeight = 0.5
-	},
-	{
-		name = "亡霊の残響（ゴースト・ボーン）",
-		price = 10,
-		chance = 5,
-		rarity = "Junk",
-		imageId = "rbxassetid://303496942", -- 缶
-		minWeight = 0.5,
-		maxWeight = 1.0
-	},
-	{
-		name = "空き缶",
-		price = 0,
-		chance = 10,
-		rarity = "Junk",
-		imageId = "rbxassetid://303496942",
-		minWeight = 0.3,
-		maxWeight = 0.3
-	}
+	{ id = "horse_mackerel", name = "アジ", price = 15, chance = 35, rarity = "Common", imageId = "rbxassetid://12618848829", minWeight = 0.2, maxWeight = 0.8 },
+	{ id = "frozen_dorhey_tang", name = "Frozen Dorhey Tang", price = 2500, chance = 1, rarity = "Legendary", imageId = "rbxassetid://104645633053612", minWeight = 1.0, maxWeight = 2.5 },
+	{ id = "red_snapper", name = "アカゾナエ・キング（真鯛）", price = 120, chance = 20, rarity = "Uncommon", imageId = "rbxassetid://10688386456", minWeight = 1.0, maxWeight = 6.0 },
+	{ id = "bluefin_titan", name = "ブルーフィン・タイタン（藍翼の巨鮪）", price = 1800, chance = 5, rarity = "Rare", imageId = "rbxassetid://120442617582897", minWeight = 50.0, maxWeight = 250.0 },
+	{ id = "platinum_shadow", name = "プラチナ・シャドウ（銀影の流波）", price = 950, chance = 8, rarity = "Rare", imageId = "rbxassetid://8174284465", minWeight = 5.0, maxWeight = 20.0 },
+	{ id = "crimson_emperor", name = "クリムゾン・エンペラー（深紅の皇帝エイ）", price = 4200, chance = 2, rarity = "Legendary", imageId = "rbxassetid://75247130300165", minWeight = 80.0, maxWeight = 400.0 },
+	{ id = "cobalt_gaia", name = "コバルト・ガイア（蒼海帝アンコウ）", price = 3500, chance = 2, rarity = "Legendary", imageId = "rbxassetid://125252506091631", minWeight = 50.0, maxWeight = 300.0 },
+	{ id = "flame_crown", name = "フレイム・クラウン（クマノミ）", price = 180, chance = 12, rarity = "Uncommon", imageId = "rbxassetid://84318455753697", minWeight = 0.1, maxWeight = 0.3 },
+	{ id = "burst_punish", name = "バースト・パニッシュ（ハリセンボン）", price = 600, chance = 8, rarity = "Uncommon", imageId = "rbxassetid://96181541470902", minWeight = 0.5, maxWeight = 3.0 },
+	{ id = "abyss_nightmare", name = "アビス・ナイトメア（深淵の悪夢鮫）", price = 5000, chance = 1, rarity = "Legendary", imageId = "rbxassetid://110180397926572", minWeight = 100.0, maxWeight = 500.0 },
+	{ id = "steel_phantom", name = "スチール・ファントム（鋼鉄の幽霊機械魚）", price = 3200, chance = 3, rarity = "Legendary", imageId = "rbxassetid://98443719086654", minWeight = 20.0, maxWeight = 100.0 },
+	{ id = "voltanic_eel", name = "ボルタニック・イール（電磁雷鰻）", price = 850, chance = 7, rarity = "Rare", imageId = "rbxassetid://126234707640024", minWeight = 2.0, maxWeight = 8.0 },
+	{ id = "sunset_burst", name = "サンセット・バースト（暁の輝き金魚）", price = 1100, chance = 6, rarity = "Rare", imageId = "rbxassetid://77747264583595", minWeight = 0.5, maxWeight = 5.0 },
+	{ id = "luna_medusa", name = "ルナ・メドゥーサ（月詠の紫月海月）", price = 450, chance = 10, rarity = "Uncommon", imageId = "rbxassetid://91903698278340", minWeight = 1.0, maxWeight = 10.0 },
+	{ id = "nebula_whale", name = "ネビュラ・ホエール（銀河を泳ぐ星雲鯨）", price = 7500, chance = 0.5, rarity = "Legendary", imageId = "rbxassetid://71131025751261", minWeight = 500.0, maxWeight = 2000.0 }
 }
 
 return FishData

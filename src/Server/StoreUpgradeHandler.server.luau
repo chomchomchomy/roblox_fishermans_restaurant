@@ -13,7 +13,12 @@ local function setupUpgradeSign()
     local sign = Instance.new("Part")
     sign.Name = "UpgradeSign"
     sign.Size = Vector3.new(3, 1, 0.5)
-    sign.Position = stand.PrimaryPart.Position + Vector3.new(8, 3, -5) -- 屋台の横らへん
+    
+    local basePos = Vector3.new(40, 3, 110-5)
+    if stand:IsA("Model") and stand.PrimaryPart then
+        basePos = stand.PrimaryPart.Position + Vector3.new(8, 3, -5)
+    end
+    sign.Position = basePos
     sign.Color = Color3.fromRGB(150, 100, 50)
     sign.Material = Enum.Material.Wood
     sign.Anchored = true

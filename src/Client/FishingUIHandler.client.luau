@@ -1,209 +1,92 @@
--- [Rojo管理] このスクリプトはVS Code（Antigravity）で編集してね！
--- StarterGui > FishingUIHandler (LocalScript)
-
+-- [[ 🌟 PREMUM FISHING UI - VER 1.6 (Screen HIT Edition) 🌟 ]]
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local fishingEvent = ReplicatedStorage:WaitForChild("FishingEvent")
+local TweenService = game:GetService("TweenService")
 local player = game.Players.LocalPlayer
 local playerGui = player:WaitForChild("PlayerGui")
+local fishingEvent = ReplicatedStorage:WaitForChild("FishingEvent")
+local Shared = ReplicatedStorage:WaitForChild("Shared")
+local FishData = require(Shared:WaitForChild("FishData"))
 
--- メッセージを表示する関数
--- メッセージを表示する関数
+warn("✅ [FishingUI] 画面中央HIT方式 V1.6 - 同期に成功しました！")
+
+local RARITY_COLORS = {
+	Common = Color3.fromRGB(150, 150, 150),
+	Uncommon = Color3.fromRGB(100, 255, 100),
+	Rare = Color3.fromRGB(50, 150, 255),
+	Legendary = Color3.fromRGB(255, 200, 0),
+}
+
 local function showCatchMessage(itemName, price, imageId, weightStr)
-	print("🎞️ 演出スタート！ 魚: " .. itemName .. " (" .. weightStr .. ")")
-	
-	local screenGui = playerGui:FindFirstChild("CatchGui") or Instance.new("ScreenGui")
-	screenGui.Name = "CatchGui"
-	screenGui.ResetOnSpawn = false
-	screenGui.Parent = playerGui
-
-	-- メインコンテナ
-	local container = Instance.new("Frame")
-	container.Size = UDim2.new(0, 400, 0, 400)
-	container.Position = UDim2.new(0.5, -200, 0.4, 0)
-	container.AnchorPoint = Vector2.new(0.5, 0.5)
-	container.BackgroundTransparency = 1
-	container.Parent = screenGui
-
-	-- お魚の画像
-	local fishImage = Instance.new("ImageLabel")
-	fishImage.Size = UDim2.new(0, 250, 0, 250)
-	fishImage.Position = UDim2.new(0.5, -125, 0, 0)
-	fishImage.Image = imageId or "rbxassetid://16024926500"
-	fishImage.BackgroundTransparency = 1
-	fishImage.ZIndex = 12
-	fishImage.Parent = container
-
-	-- 名前パネル
-	local nameLabel = Instance.new("TextLabel")
-	nameLabel.Size = UDim2.new(1, 0, 0, 50)
-	nameLabel.Position = UDim2.new(0, 0, 0, 260)
-	nameLabel.BackgroundTransparency = 0.5
-	nameLabel.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
-	nameLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
-	nameLabel.Text = itemName
-	nameLabel.TextScaled = true
-	nameLabel.Font = Enum.Font.LuckiestGuy
-	nameLabel.ZIndex = 15
-	nameLabel.Parent = container
-	
-	Instance.new("UICorner", nameLabel).CornerRadius = UDim.new(0, 10)
-
-	-- 重さラベル
-	local weightLabel = Instance.new("TextLabel")
-	weightLabel.Size = UDim2.new(1, 0, 0, 30)
-	weightLabel.Position = UDim2.new(0, 0, 0, 320)
-	weightLabel.BackgroundTransparency = 1
-	weightLabel.TextColor3 = Color3.fromRGB(150, 255, 150)
-	weightLabel.Text = weightStr or "0.0kg"
-	weightLabel.TextSize = 24
-	weightLabel.Font = Enum.Font.GothamBold
-	weightLabel.ZIndex = 15
-	weightLabel.Parent = container
-
-	-- アニメーション：ドカンと大きく弾む！
-	fishImage.Size = UDim2.new(0, 0, 0, 0)
-	fishImage:TweenSize(UDim2.new(0, 250, 0, 250), "Out", "Back", 0.5)
-
-	task.wait(3)
-	container:Destroy()
-	print("🧹 演出終了：画面をお掃除しました")
-end
-
--- ★NEW：ヒットの合図「！」と指示を画面に出す魔法
-local function showHitEffect()
-	print("📢 ヒット演出：ユーザーにクリック指示を出します")
-	local screenGui = playerGui:FindFirstChild("CatchGui") or Instance.new("ScreenGui")
-	screenGui.Name = "CatchGui"
-	screenGui.Parent = playerGui
-
-	-- デカい「！」
-	local hitLabel = Instance.new("TextLabel")
-	hitLabel.Size = UDim2.new(0.5, 0, 0.4, 0)
-	hitLabel.Position = UDim2.new(0.25, 0, 0.1, 0)
-	hitLabel.BackgroundTransparency = 1
-	hitLabel.Text = "❗"
-	hitLabel.TextScaled = true
-	hitLabel.Font = Enum.Font.GothamBold
-	hitLabel.TextColor3 = Color3.fromRGB(255, 0, 0)
-	hitLabel.Rotation = -10
-	hitLabel.ZIndex = 20
-	hitLabel.Parent = screenGui
-
-	-- ★指示テキスト：「クリック！」
-	local clickLabel = Instance.new("TextLabel")
-	clickLabel.Size = UDim2.new(0.4, 0, 0.2, 0)
-	clickLabel.Position = UDim2.new(0.3, 0, 0.45, 0)
-	clickLabel.BackgroundTransparency = 1
-	clickLabel.Text = "CLICK!" -- または「クリックして！」
-	clickLabel.TextScaled = true
-	clickLabel.Font = Enum.Font.LuckiestGuy -- 勢いのあるフォント
-	clickLabel.TextColor3 = Color3.fromRGB(255, 255, 0) -- 黄色
-	clickLabel.ZIndex = 21
-	clickLabel.Parent = screenGui
-	
-	-- 演出：点滅させて目立たせる！
-	task.spawn(function()
-		for i = 1, 6 do
-			clickLabel.Visible = not clickLabel.Visible
-			task.wait(0.1)
-		end
-		clickLabel.Visible = true
-	end)
-
-	-- 竿のプログラム側で設定した時間（2.5秒弱）待ってから消す
-	task.wait(1.5) -- 指示はパッと消えていい
-	hitLabel:Destroy()
-	clickLabel:Destroy()
-end
-
--- ローカル通知（他のクライアントスクリプトからの呼び出し）を受け取る
-local localNotice = ReplicatedStorage:FindFirstChild("LocalNotice")
-if not localNotice then
-	localNotice = Instance.new("BindableEvent")
-	localNotice.Name = "LocalNotice"
-	localNotice.Parent = ReplicatedStorage
-end
-
-local function showBagFullWarning()
-	print("バッグがいっぱいです！")
-	-- バッグ満杯時の警告表示（もっと目立つように！）
-	local screenGui = playerGui:FindFirstChild("CatchGui") or Instance.new("ScreenGui")
-	screenGui.Name = "CatchGui"
-	screenGui.Parent = playerGui
-
-	local container = Instance.new("Frame")
-	container.Size = UDim2.new(0, 400, 0, 80)
-	container.Position = UDim2.new(0.5, -200, 0.3, 0)
-	container.BackgroundColor3 = Color3.fromRGB(150, 0, 0)
-	container.BorderSizePixel = 0
-	container.Parent = screenGui
-
-	local uiCorner = Instance.new("UICorner")
-	uiCorner.CornerRadius = UDim.new(0, 12)
-	uiCorner.Parent = container
-
-	local warnLabel = Instance.new("TextLabel")
-	warnLabel.Size = UDim2.new(1, 0, 1, 0)
-	warnLabel.BackgroundTransparency = 1
-	warnLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
-	warnLabel.Text = "🚨 バッグがいっぱいです！シェフに売りに行こう！"
-	warnLabel.TextScaled = true
-	warnLabel.Font = Enum.Font.GothamBlack
-	warnLabel.Parent = container
-	
-	-- アニメーション：パルス（ドクンドクンと動く）
-	container:TweenSize(UDim2.new(0, 420, 0, 90), "Out", "Quad", 0.2, true, function()
-		container:TweenSize(UDim2.new(0, 400, 0, 80), "Out", "Quad", 0.2, true)
-	end)
-
-	task.wait(2.5)
-	container:Destroy()
-end
-
-localNotice.Event:Connect(function(msg)
-	if msg == "BAG_FULL" then
-		showBagFullWarning()
+	local rarity = "Common"
+	for _, fish in pairs(FishData) do
+		if string.find(itemName, fish.name) then rarity = fish.rarity; break end
 	end
-end)
+	local rarityColor = RARITY_COLORS[rarity] or RARITY_COLORS.Common
 
--- サーバーからの通知を受け取る
+	local screenGui = Instance.new("ScreenGui", playerGui)
+	screenGui.Name = "CatchCelebration"; screenGui.DisplayOrder = 100
+	
+	local bg = Instance.new("Frame", screenGui)
+	bg.Size = UDim2.new(1, 0, 1, 0); bg.BackgroundColor3 = Color3.new(0, 0, 0); bg.BackgroundTransparency = 1
+	TweenService:Create(bg, TweenInfo.new(0.5), {BackgroundTransparency = 0.6}):Play()
+
+	local container = Instance.new("Frame", screenGui)
+	container.Size = UDim2.new(0, 0, 0, 0); container.Position = UDim2.new(0.5, 0, 0.45, 0)
+	container.AnchorPoint = Vector2.new(0.5, 0.5); container.BackgroundTransparency = 1
+    
+	local burst = Instance.new("ImageLabel", container)
+	burst.Size = UDim2.new(2.5, 0, 2.5, 0); burst.Position = UDim2.new(0.5, 0, 0.5, 0); burst.AnchorPoint = Vector2.new(0.5, 0.5)
+	burst.Image = "rbxassetid://6031301411"; burst.ImageColor3 = rarityColor; burst.BackgroundTransparency = 1; burst.ZIndex = 1
+    
+	local fishImage = Instance.new("ImageLabel", container)
+	fishImage.Size = UDim2.new(1, 0, 1, 0); fishImage.Image = imageId or "rbxassetid://16024926500"
+	fishImage.BackgroundTransparency = 1; fishImage.ZIndex = 10
+    
+	container:TweenSize(UDim2.new(0, 350, 0, 350), "Out", "Back", 0.6)
+	task.spawn(function() while container.Parent do burst.Rotation += 1; task.wait(0.01) end end)
+	task.wait(4)
+	screenGui:Destroy()
+end
+
 fishingEvent.OnClientEvent:Connect(function(itemName, price, imageId, weightStr)
 	if itemName == "HIT" then
-		showHitEffect()
-	elseif itemName == "BAG_FULL" then
-		showBagFullWarning()
-	elseif itemName == "SELL_RESULTS" then
-		local totalMoney = price -- 第2引数をpriceとして受け取っている
-		local count = imageId -- 第3引数をimageId(count)として受け取っている
+		-- 🎣 画面中央特大HIT通知（絶対に逃さない！）
+		warn("✨ [FishingUI] !!! HIT! CLICK!! を表示中 !!!")
 		
-		print("💰 売却完了: " .. totalMoney .. "円")
+		local sg = Instance.new("ScreenGui", playerGui)
+		sg.Name = "ActionNotice"
+		sg.DisplayOrder = 1000 -- 最前面に
 		
-		-- 売却成功のエフェクト表示
-		local screenGui = playerGui:FindFirstChild("CatchGui") or Instance.new("ScreenGui")
-		screenGui.Name = "CatchGui"
-		screenGui.Parent = playerGui
-
-		local sellLabel = Instance.new("TextLabel")
-		sellLabel.Size = UDim2.new(0, 400, 0, 50)
-		sellLabel.Position = UDim2.new(0.5, -200, 0.45, 0)
-		sellLabel.BackgroundTransparency = 1
-		sellLabel.TextColor3 = Color3.fromRGB(255, 215, 0) -- ゴールド色
-		sellLabel.Text = "💰 +" .. totalMoney .. " Gold! (" .. count .. "匹売却)"
-		sellLabel.TextScaled = true
-		sellLabel.Font = Enum.Font.LuckiestGuy
-		sellLabel.Parent = screenGui
+		local label = Instance.new("TextLabel", sg)
+		label.Size = UDim2.new(1, 0, 0.3, 0)
+		label.Position = UDim2.new(0, 0, 0.35, 0)
+		label.BackgroundTransparency = 1
+		label.Font = Enum.Font.LuckiestGuy
+		label.Text = "HIT! CLICK!!"
+		label.TextColor3 = Color3.fromRGB(255, 230, 0) -- 鮮やかな黄色
+		label.TextStrokeTransparency = 0
+		label.TextStrokeColor3 = Color3.fromRGB(255, 0, 0) -- 赤い縁取り
+		label.TextScaled = true
+		label.ZIndex = 110
 		
-		-- 上にふわっと消えていくアニメーション
-		sellLabel:TweenPosition(UDim2.new(0.5, -200, 0.35, 0), "Out", "Quart", 1.5)
+		-- 演出：ドーンと拡大して、少しプルプルする
+		label.Size = UDim2.new(1, 0, 0, 0)
+		local info = TweenInfo.new(0.4, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
+		TweenService:Create(label, info, {Size = UDim2.new(1, 0, 0.3, 0)}):Play()
+		
+		-- 繰り返し点滅させる
 		task.spawn(function()
-			for i = 0, 1, 0.05 do
-				sellLabel.TextTransparency = i
-				task.wait(0.075)
+			for i = 1, 6 do
+				if not label.Parent then break end
+				label.Visible = not label.Visible
+				task.wait(0.15)
 			end
-			sellLabel:Destroy()
+			if label.Parent then label.Visible = true end
 		end)
+		
+		-- 1.5秒後に自動消去
+		task.delay(1.5, function() if sg then sg:Destroy() end end)
 	else
-		print("クライアント受信: " .. itemName .. " を釣りました！")
 		showCatchMessage(itemName, price, imageId, weightStr)
 	end
 end)
