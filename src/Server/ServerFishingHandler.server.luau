@@ -36,11 +36,11 @@ remote.OnServerEvent:Connect(function(player, action)
 	local boostedFishes = {}
 
 	for _, fish in pairs(FishData) do
-		-- ★厳格な画像チェック（空き缶などを追放）
+		-- ★厳格な画像・出現率チェック
 		local hasImage = fish.imageId and fish.imageId ~= "" and fish.imageId ~= "rbxassetid://0"
-		if not hasImage then continue end
-
-		local chance = fish.chance or 10
+		local chance = fish.chance or 0
+		if not hasImage or chance <= 0 then continue end
+		
 		if fish.rarity == "Rare" then chance = chance * rarityBoost
 		elseif fish.rarity == "Legendary" then chance = chance * (rarityBoost * 1.5) end
 		
